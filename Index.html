@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roland JUNO-106 - Simple UI</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand"><span class="roland">Roland</span><span class="model">JUNO-106</span><span class="ver">Simple</span></div>
+    <div class="voice-leds"><span>VOICE</span><div id="v0" class="led"></div><div id="v1" class="led"></div><div id="v2" class="led"></div><div id="v3" class="led"></div><div id="v4" class="led"></div><div id="v5" class="led"></div></div>
+    <div class="header-actions"><button id="panic">PANIC</button><button id="power" class="power-on">● POWER</button></div>
+  </header>
+
+  <main id="panel">
+    <section class="sec lfo"><h3>LFO</h3><div class="row"><div class="slider"><label>RATE</label><input id="lfoRate" type="range" min="0" max="127" value="30"><span>30</span></div><div class="slider"><label>DELAY</label><input id="lfoDelay" type="range" min="0" max="127" value="0"><span>0</span></div></div></section>
+    <section class="sec dco"><h3>DCO</h3><div class="row"><button class="wave active" data-wave="saw">SAW</button><button class="wave active" data-wave="pulse">PULSE</button><button class="wave" data-wave="sub">SUB</button></div><div class="row"><div class="slider"><label>PWM</label><input id="pwm" type="range" min="0" max="127" value="64"><span>64</span></div><div class="slider"><label>SUB</label><input id="sub" type="range" min="0" max="127" value="0"><span>0</span></div><div class="slider"><label>NOISE</label><input id="noise" type="range" min="0" max="127" value="0"><span>0</span></div></div><div class="hint">2-Saw+Delay PWM (original dco.js L105)</div></section>
+    <section class="sec vcf"><h3>VCF - Self-Res</h3><div class="row"><div class="slider"><label>FREQ</label><input id="vcfFreq" type="range" min="0" max="127" value="80"><span>80</span></div><div class="slider"><label>RES</label><input id="vcfRes" type="range" min="0" max="127" value="20"><span>20</span></div><div class="slider"><label>ENV</label><input id="vcfEnv" type="range" min="0" max="127" value="60"><span>60</span></div></div><div class="hint">Feedback+tanh (original vcf.js L64)</div></section>
+    <section class="sec hpf"><h3>HPF</h3><div class="row"><button class="hpf-btn active" data-hpf="1">0</button><button class="hpf-btn" data-hpf="2">1</button><button class="hpf-btn" data-hpf="3">2</button><button class="hpf-btn" data-hpf="4">3</button></div></section>
+    <section class="sec env"><h3>VCA + ENV</h3><div class="row"><div class="slider"><label>A</label><input id="envA" type="range" min="0" max="127" value="10"><span>10</span></div><div class="slider"><label>D</label><input id="envD" type="range" min="0" max="127" value="50"><span>50</span></div><div class="slider"><label>S</label><input id="envS" type="range" min="0" max="127" value="100"><span>100</span></div><div class="slider"><label>R</label><input id="envR" type="range" min="0" max="127" value="30"><span>30</span></div></div></section>
+    <section class="sec chorus"><h3>CHORUS</h3><div class="row"><button class="chorus-btn active" data-chorus="0">OFF</button><button class="chorus-btn" data-chorus="1">I</button><button class="chorus-btn" data-chorus="2">II</button></div></section>
+  </main>
+
+  <div id="scopeWrap"><span>SCOPE</span><canvas id="scope"></canvas><span id="voiceInfo">--</span></div>
+  <div id="pcHint" style="font-size:10px;color:#8ba2ad;background:#111;padding:6px 8px;border-radius:4px">PC Keyboard: <b>z x c v b n m</b> = C D E F G A B (白鍵) / <b>s d g h j</b> = 黒鍵 (C# D# F# G# A#) / <b>q w e r t y u i</b> = 1オクターブ上 / <b>[ ]</b> = オクターブシフト / 同時押し2鍵以上はゴースト注意 (元祖README準拠)</div>
+  <div id="keyboard"></div>
+  <div id="log"></div>
+  <div id="overlay" class="hidden"><div class="modal"><h2>⚡ POWER OFF</h2><button id="powerOnBtn">POWER ON</button></div></div>
+</div>
+<!-- synth部は現行 js/synth/*.js をそのまま利用、UIバインドは juno.js -->
+<script src="juno.js"></script>
+</body>
+</html>

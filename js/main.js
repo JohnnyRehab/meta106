@@ -1,0 +1,106 @@
+require([
+    'backbone',
+    'backbone.marionette',
+    'application',
+    'routers', // Do not remove. This is required as a dependency. Routers must be loaded prior to App.start();
+    'views/layout/junoLayout',
+    'views/item/headerItemView',
+    'views/item/unsupportedItemView',
+    'views/item/clickMenuItemView'
+],
+
+    function (Backbone, Marionette, App, Routers, JunoLayout, HeaderItemView, UnsupportedItemView, ClickMenuItemView) {
+        
+        try {
+            window.AudioContext = window.AudioContext || window.webkitAudioContext;
+            App.context = new AudioContext();
+        }
+        catch(e) {
+            alert('Web Audio API is not supported in this browser');
+        }
+        
+        
+        // Pulse oscillator from Andy Harman
+        // https://github.com/pendragon-andyh/WebAudio-PulseOscillator
+        var pulseCurve = new Float32Array(256);
+        for(var i = 0; i < 128; i++) {
+            pulseCurve[i] = -1;
+            pulseCurve[i + 128] = 1;
+        }
+        App.context.pulseCurve = pulseCurve;
+        
+        var constantOneCurve = new Float32Array(2);
+        constantOneCurve[0] = 1;
+        constantOneCurve[1] = 1;
+        App.context.constantOneCurve = constantOneCurve;
+        
+        App.context.createPulseOscillator = function() {
+    		var node = this.createOscillator();
+    		node.type = "sawtooth";
+            
+    		var pulseShaper = App.context.createWaveShaper();
+    		pulseShaper.curve = this.pulseCurve;
+    		node.connect(pulseShaper);
+    		var widthGain = App.context.createGain();
+    		widthGain.gain.value = 0; 
+    		node.width = widthGain.gain; 
+    		widthGain.connect(pulseShaper);
+            
+    		var constantOneShaper = this.createWaveShaper();
+    		constantOneShaper.curve = this.constantOneCurve;
+    		node.connect(constantOneShaper);
+    		constantOneShaper.connect(widthGain);
+
+    		node.connect = function() {
+    			pulseShaper.connect.apply(pulseShaper, arguments);
+    			return node;
+    		};
+    		
+    		node.disconnect = function() {
+    			pulseShaper.disconnect.apply(pulseShaper, arguments);
+    			return node;
+    		};
+            
+    		return node;
+    	};
+        
+        var junoLayout = new JunoLayout();
+        var headerView = new HeaderItemView();
+        var unsupported = new UnsupportedItemView();
+        App.contextMenu = new ClickMenuItemView();
+        
+        
+        junoLayout.listenTo(headerView, 'reset', junoLayout.handleReset);
+        junoLayout.listenTo(headerView, 'share', junoLayout.sharePatch);
+        junoLayout.listenTo(headerView, 'export', junoLayout.exportSequence);
+        junoLayout.listenTo(headerView, 'import', junoLayout.importSequence);
+        
+        Backbone.Wreqr.radio.channel('patch').vent.on('reset', function() {
+            headerView.resetName();
+        });
+        
+        Backbone.Wreqr.radio.channel('patch').vent.on('setName', function(name) {
+            headerView.setName(name);
+        });
+                
+        App.router = Routers;
+        App.start();
+        
+        
+        
+        if(screen.width < 1024 || screen.height < 768) {
+            App.content.show(unsupported);
+        } else {
+            App.content.show(junoLayout);
+            App.header.show(headerView);
+            App.menu.show(App.contextMenu);
+            
+            // Signals panels migrated to js/main-es.js (native ES
+            // modules, no Backbone/jQuery/RequireJS) that the existing
+            // app has finished starting up and it's safe to render into
+            // the region elements it created.
+            window.dispatchEvent(new CustomEvent('juno106:ready', {
+                detail: { synth: junoLayout.synth }
+            }));
+        }        
+});
